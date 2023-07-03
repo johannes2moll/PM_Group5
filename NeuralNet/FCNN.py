@@ -131,6 +131,12 @@ def train_model(data_path="../../CMAPSSdata/train_FD001.txt"):
             # Therefore, we must detect, when we move to the next sample
             if df_input.iloc[index+1].values[1] == 1: # time_cycle equals 1  TODO: please test if this is correct, it is already late and my heads not working anymore
                 counter += 1
+
+
+            # Print progress
+            if index % 100 == 0:
+                print("Epoch: %d, Sample: %d/%d" % (epoch, index, df_input.shape[0] - 1))
+
         # updating learning rate
         scheduler.step()
         losses[epoch - 1] = loss.detach().numpy()
