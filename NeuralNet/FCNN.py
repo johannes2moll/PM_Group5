@@ -38,6 +38,15 @@ class FCNN(nn.Module):
         self.fc3 = nn.Linear(20, 20)
         self.fc_end = nn.Linear(20, 1)
 
+        # add Xavier initialization
+        weights = [self.fc1.weight, self.fc2.weight, self.fc3.weight, self.fc_end.weight]
+        biases = [self.fc1.bias, self.fc2.bias, self.fc3.bias, self.fc_end.bias]
+        for w in weights:
+            nn.init.xavier_uniform_(w)
+        for b in biases:
+            nn.init.zeros_(b)
+        
+
 
     def forward(self, x):
         
@@ -48,13 +57,13 @@ class FCNN(nn.Module):
 
         return x
     
-def lossfunction(RLU_real, RLU_predicted):
+def lossfunction(RUL_target, RUL_predicted):
     loss = 0
     ### TODO
     # define loss function
     # e.g. MSE
     # curently not used
-    loss = MSELoss(RLU_real - RLU_predicted)
+    loss = MSELoss(RUL_target - RUL_predicted)
     ###
 
     return loss
@@ -66,7 +75,7 @@ def train_model(data_path="../../CMAPSSdata/train_FD001.txt"):
     np.random.seed(2)
 
     # hyperparameters
-    NUM_EPOCHS = 4_000 
+    NUM_EPOCHS = 250 
     LEARNING_RATE = 0.01 
 
     # loading the data
@@ -75,8 +84,8 @@ def train_model(data_path="../../CMAPSSdata/train_FD001.txt"):
     df = pd.read_csv(data_path,sep=" ",header=None)
     df_input = preprocessing(data=df)
     print("input_shape: ",df_input.shape)
-    # load real RLU
-    RLU_real = pd.read_csv("../../CMAPSSdata/RUL_FD001.txt", header=None)
+    # load real RUL
+    RUL_target = None      # TODO: load training RUL target values as dataframe with one column
     # creating an instance of our neural network class
     imput_dim = df_input.shape[1]
     print("input_dim: ",imput_dim)
@@ -91,35 +100,29 @@ def train_model(data_path="../../CMAPSSdata/train_FD001.txt"):
     # creating an instance of the Adam optimizer with the specified learning rate
     optimizer = Adam(model.parameters(), lr=LEARNING_RATE)
     # The scheduler will reduce the learning rate of the optimizer by a factor of 0.5 after 1000 epochs
-    scheduler = StepLR(optimizer, step_size=1000, gamma=0.5)
+    scheduler = StepLR(optimizer, step_size=100, gamma=0.5)
 
     for epoch in range(1, NUM_EPOCHS + 1):
         # use each sample once 
         # TODO: so far no Stochastic GD, or batchwise learning
         
         # TODO: implement random shuffling of data
-        # TODO: implement batchwise learning
+        # TODO: implement batchwise learning (batchsize 512)
         # TODO: add RUL to data input or find workaround. Right now, I have to find out which RUL belongs to which sample. And when one sample ends
         counter = 0
         for index in range (0,df_input.shape[0] -1):
-            # predict RLU
+            # predict RUL
             selected_row = df_input.iloc[index].values
             input_tensor = torch.tensor(selected_row, dtype=torch.float32)
-            RLU_predicted = model(input_tensor)
+            RUL_predicted = model(input_tensor)
 
             # reset gradients
             optimizer.zero_grad()
 
             # compute loss
-            # TODO: implement computation of "real" RLU value
-            ##############################
-            RLU_real_computed = RLU_real.iloc[counter].values # TODO: linear decrease from start may be wrong due to plateau in the beginning
-
-
-            ##############################
-            RLU_real_computed = torch.tensor(RLU_real_computed, dtype=torch.float32)
-
-            loss = loss_function(RLU_real_computed, RLU_predicted)
+            
+            RUL_target_sample = RUL_target.iloc[index].values
+            loss = loss_function(RUL_target_sample, RUL_predicted)
             # propagating backward
             loss.backward()
 
@@ -127,7 +130,7 @@ def train_model(data_path="../../CMAPSSdata/train_FD001.txt"):
             optimizer.step()
 
             # decide if we moved on to next sample
-            # I do this here as we havent implemented the computation of the real RLU value yet. So far, there is only one value for all time_cycles of a sample
+            # I do this here as we havent implemented the computation of the real RUL value yet. So far, there is only one value for all time_cycles of a sample
             # Therefore, we must detect, when we move to the next sample
             if df_input.iloc[index+1].values[1] == 1: # time_cycle equals 1  TODO: please test if this is correct, it is already late and my heads not working anymore
                 counter += 1
@@ -144,11 +147,7 @@ def train_model(data_path="../../CMAPSSdata/train_FD001.txt"):
         # Save predictions every 100 epochs for plotting later
         if epoch % 100 == 0:
             print("Epoch: %d, Loss: %.7f" % (epoch, losses[epoch - 1]))
-            #with torch.no_grad():
-            #    df_input = torch.tensor(df_input, dtype=torch.float32)
-            #    RLU_pred = model(df_input)
-            #    RLU_pred = RLU_pred.detach().numpy()
-            #    predictions.append([RLU_pred, epoch])
+
 
     torch.save(model.state_dict(), "FCNN.pt")
 
