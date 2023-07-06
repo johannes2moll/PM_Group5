@@ -68,35 +68,41 @@ def lossfunction(RUL_target, RUL_predicted):
 
     return loss
     
-def train_model(data_path="../../CMAPSSdata/train_FD001.txt"):
+def train_model(data_path="merged_dataframe.csv"):
 
     # setting a seed for pytorch as well as one for numpy
     torch.manual_seed(2)
     np.random.seed(2)
 
     # hyperparameters
-    NUM_EPOCHS = 250 
-    LEARNING_RATE = 0.01 
+    NUM_EPOCHS = 400
+    LEARNING_RATE = 0.005 
+    BATCH_SIZE = 512
+
 
     # loading the data
     # TODO: data is currently loaded without preprocessing and then being preprocessed in utils.py
     # Future implementation should reference preprocessed data directly via data_path
-    df = pd.read_csv(data_path,sep=" ",header=None)
-    df_input = preprocessing(data=df)
+    #df = pd.read_csv(data_path,sep=" ",header=None)
+    #df_input = preprocessing(data=df)
+    df_input = pd.read_csv(data_path, sep=",")
     print("input_shape: ",df_input.shape)
     # load real RUL
-    RUL_target = None      # TODO: load training RUL target values as dataframe with one column
+    # filter column with label "RUL"
+    RUL_target = df_input.filter(["RUL"], axis=1)
     # creating an instance of our neural network class
     imput_dim = df_input.shape[1]
     print("input_dim: ",imput_dim)
     model = FCNN(imput_dim)
+    
 
     # creating a list for predictions and an array for our loss function values
     predictions = []
     losses = np.zeros(NUM_EPOCHS)
 
     # Create an instance of the mean squared error (MSE) loss function
-    loss_function = nn.MSELoss()        # TODO: own loss function could be implemented
+    loss_function = nn.MSELoss()        
+
     # creating an instance of the Adam optimizer with the specified learning rate
     optimizer = Adam(model.parameters(), lr=LEARNING_RATE)
     # The scheduler will reduce the learning rate of the optimizer by a factor of 0.5 after 1000 epochs
@@ -104,41 +110,51 @@ def train_model(data_path="../../CMAPSSdata/train_FD001.txt"):
 
     for epoch in range(1, NUM_EPOCHS + 1):
         # use each sample once 
-        # TODO: so far no Stochastic GD, or batchwise learning
+        # TODO: so far no Stochastic GD, or batchwise learning -> done
         
-        # TODO: implement random shuffling of data
-        # TODO: implement batchwise learning (batchsize 512)
-        # TODO: add RUL to data input or find workaround. Right now, I have to find out which RUL belongs to which sample. And when one sample ends
-        counter = 0
-        for index in range (0,df_input.shape[0] -1):
-            # predict RUL
-            selected_row = df_input.iloc[index].values
-            input_tensor = torch.tensor(selected_row, dtype=torch.float32)
-            RUL_predicted = model(input_tensor)
+        # TODO: implement random shuffling of data -> done
+        # TODO: implement batchwise learning (batchsize 512) -> done
+        # TODO: add RUL to data input or find workaround. Right now, I have to find out which RUL belongs to which sample. And when one sample ends -> done
 
-            # reset gradients
+        # Shuffle the data
+        df_input_shuffled = df_input.sample(frac=1).reset_index(drop=True)
+        RUL_target_shuffled = RUL_target.sample(frac=1).reset_index(drop=True)
+
+        #RUL_target_shuffled = torch.tensor(RUL_target_shuffled.values, dtype=torch.float32)
+
+        # Calculate the total number of batches
+        num_batches = df_input.shape[0] // BATCH_SIZE
+
+        for batch in range(num_batches):
+            # Get the batch indices
+            start_idx = batch * BATCH_SIZE
+            end_idx = (batch + 1) * BATCH_SIZE
+
+            # Get the batch input and target tensors
+            batch_input = df_input_shuffled.iloc[start_idx:end_idx].values
+            batch_target = RUL_target_shuffled.iloc[start_idx:end_idx].values
+
+            # Convert the batch input to a tensor
+            input_tensor = torch.tensor(batch_input, dtype=torch.float32)
+
+            # Reset gradients
             optimizer.zero_grad()
 
-            # compute loss
-            
-            RUL_target_sample = RUL_target.iloc[index].values
-            loss = loss_function(RUL_target_sample, RUL_predicted)
-            # propagating backward
+            # Forward pass
+            RUL_predicted = model(input_tensor)
+
+            # Convert the batch target to a tensor
+            target_tensor = torch.tensor(batch_target, dtype=torch.float32)
+
+            # Compute loss
+            loss = loss_function(target_tensor, RUL_predicted)
+            # Compute RMSE
+            loss = torch.sqrt(loss)     # paper says RMSE
+            # Backward pass
             loss.backward()
 
-            # updating parameters
+            # Update parameters
             optimizer.step()
-
-            # decide if we moved on to next sample
-            # I do this here as we havent implemented the computation of the real RUL value yet. So far, there is only one value for all time_cycles of a sample
-            # Therefore, we must detect, when we move to the next sample
-            if df_input.iloc[index+1].values[1] == 1: # time_cycle equals 1  TODO: please test if this is correct, it is already late and my heads not working anymore
-                counter += 1
-
-
-            # Print progress
-            if index % 100 == 0:
-                print("Epoch: %d, Sample: %d/%d" % (epoch, index, df_input.shape[0] - 1))
 
         # updating learning rate
         scheduler.step()
@@ -158,6 +174,7 @@ def train_model(data_path="../../CMAPSSdata/train_FD001.txt"):
     plt.title("Training Loss")
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
+    plt.savefig("loss_FCNN.png")
 
 
 def main():
