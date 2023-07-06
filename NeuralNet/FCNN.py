@@ -10,12 +10,7 @@
 ###########################################################################
 """
 TODO:
-    - define loss function
-    - define optimizer
-    - include normalization
-    - include health indicator
-    - include test and train split
-    - ...
+
 """
 import torch
 import matplotlib.pyplot as plt
@@ -68,7 +63,7 @@ def lossfunction(RUL_target, RUL_predicted):
 
     return loss
     
-def train_model(data_path="merged_dataframe.csv"):
+def train_model(data_path="training_input.csv"):
 
     # setting a seed for pytorch as well as one for numpy
     torch.manual_seed(2)
@@ -76,20 +71,25 @@ def train_model(data_path="merged_dataframe.csv"):
 
     # hyperparameters
     NUM_EPOCHS = 400
-    LEARNING_RATE = 0.005 
+    LEARNING_RATE = 0.0005
     BATCH_SIZE = 512
 
 
     # loading the data
     # TODO: data is currently loaded without preprocessing and then being preprocessed in utils.py
-    # Future implementation should reference preprocessed data directly via data_path
+    # Future implementation should reference preprocessed data directly via data_path -> done
     #df = pd.read_csv(data_path,sep=" ",header=None)
     #df_input = preprocessing(data=df)
-    df_input = pd.read_csv(data_path, sep=",")
+    df = pd.read_csv(data_path, sep=",")
+    # drop RUL column
+    df_input = df.copy()
+    df_input = df_input.drop(["RUL"], axis=1)
     print("input_shape: ",df_input.shape)
     # load real RUL
     # filter column with label "RUL"
-    RUL_target = df_input.filter(["RUL"], axis=1)
+    RUL_target = df.copy()
+    RUL_target = RUL_target.filter(["RUL"], axis=1)
+    print("RUL_target: ",RUL_target.shape)
     # creating an instance of our neural network class
     imput_dim = df_input.shape[1]
     print("input_dim: ",imput_dim)
@@ -111,7 +111,6 @@ def train_model(data_path="merged_dataframe.csv"):
     for epoch in range(1, NUM_EPOCHS + 1):
         # use each sample once 
         # TODO: so far no Stochastic GD, or batchwise learning -> done
-        
         # TODO: implement random shuffling of data -> done
         # TODO: implement batchwise learning (batchsize 512) -> done
         # TODO: add RUL to data input or find workaround. Right now, I have to find out which RUL belongs to which sample. And when one sample ends -> done
@@ -144,7 +143,10 @@ def train_model(data_path="merged_dataframe.csv"):
             RUL_predicted = model(input_tensor)
 
             # Convert the batch target to a tensor
+            #print("batch_target: ",batch_target)
             target_tensor = torch.tensor(batch_target, dtype=torch.float32)
+            #resize target_tensor to (512, 1)
+            #target_tensor = target_tensor.view(BATCH_SIZE, 1)
 
             # Compute loss
             loss = loss_function(target_tensor, RUL_predicted)
@@ -157,7 +159,7 @@ def train_model(data_path="merged_dataframe.csv"):
             optimizer.step()
 
         # updating learning rate
-        scheduler.step()
+        #scheduler.step()
         losses[epoch - 1] = loss.detach().numpy()
 
         # Save predictions every 100 epochs for plotting later
@@ -174,7 +176,7 @@ def train_model(data_path="merged_dataframe.csv"):
     plt.title("Training Loss")
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
-    plt.savefig("loss_FCNN.png")
+    plt.savefig("../plots/loss_FCNN.png")
 
 
 def main():
