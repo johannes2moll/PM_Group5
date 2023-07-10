@@ -10,9 +10,10 @@ class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
         
-        self.conv1 = nn.Conv1d(1, 16, kernel_size=3, stride=1)
+        #TODO: Check filter size and stride etc from paper
+        self.conv1 = nn.Conv1d(30, 32, kernel_size=3, stride=1)
         self.pool = nn.MaxPool1d(kernel_size=2, stride=2)
-        self.fc1 = nn.Linear(16 * 14, 32)
+        self.fc1 = nn.Linear(5 * 32, 32)
         self.fc2 = nn.Linear(32, 1)
 
     def forward(self, x):
@@ -33,15 +34,15 @@ def create_input_samples(df_input, RUL_target):
 
     for unit_id in range(1, num_units+1):
         # find number of time cycles for current unit
-        num_time_cycles = df_input[df_input["unit_number"] == unit_id].shape[0]
+        num_time_cycles = 30
         unit_data = df_input[df_input["unit_number"] == unit_id].iloc[:, 2:]
-        print("target: {}".format(RUL_target))
         unit_target = RUL_target[RUL_target["unit_number"] == unit_id]
 
-        unit_target = unit_target.filter(["RUL"], axis=1)
-        print("unit_target: {}".format(unit_target))
+        unit_target = unit_target.filter(["RUL"], axis=1).to_numpy()
+        #print("unit_target: {}".format(unit_target.shape))
         num_samples = unit_data.shape[0] - num_time_cycles + 1
-
+        #print("num_samples: {}".format(num_samples))
+        #print("num_time_cycles: {}".format(num_time_cycles))
         for i in range(num_samples):
             input_sample = unit_data[i:i+num_time_cycles]
             target_sample = unit_target[i+num_time_cycles-1]
