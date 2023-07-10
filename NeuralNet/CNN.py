@@ -9,22 +9,49 @@ import matplotlib.pyplot as plt
 class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
-        
+
         #TODO: Check filter size and stride etc from paper
-        self.conv1 = nn.Conv1d(30, 32, kernel_size=3, stride=1)
-        self.pool = nn.MaxPool1d(kernel_size=2, stride=2)
-        self.fc1 = nn.Linear(5 * 32, 32)
-        self.fc2 = nn.Linear(32, 1)
+        # input samples have shape 30x13 (30: time cycles, 13: features)
+        # output samples have shape 1x1 (1: RUL)
+        
+        # Convolutional layers
+        self.conv1 = nn.Conv1d(in_channels=13, out_channels=10, kernel_size=10, stride=1, padding=1)
+        self.conv2 = nn.Conv1d(in_channels=10, out_channels=1, kernel_size=10, stride=1, padding=1)
+        #self.conv3 = nn.Conv1d(in_channels=10, out_channels=10, kernel_size=10, stride=1, padding=1)
+        #self.conv4 = nn.Conv1d(in_channels=10, out_channels=10, kernel_size=10, stride=1, padding=1)
+        #self.conv5 = nn.Conv1d(in_channels=10, out_channels=1, kernel_size=3, stride=1, padding=1)
+
+        # Fully connected layers
+        self.fc1 = nn.Linear(16, 100)
+        self.fc2 = nn.Linear(100, 1)
 
     def forward(self, x):
+        #print("x.shape: {}".format(x.shape))
         x = self.conv1(x)
         x = torch.relu(x)
-        x = self.pool(x)
+        #print("x.shape: {}".format(x.shape))
+        #x = self.pool(x)
+        x = self.conv2(x)
+        x = torch.relu(x)
+        #print("x.shape: {}".format(x.shape))
+        #x = self.pool(x)
+        #x = self.conv3(x)
+        #x = torch.relu(x)
+        #print("x.shape: {}".format(x.shape))
+        #x = self.pool(x)
+        #x = self.conv4(x)
+        #x = torch.relu(x)
+        #print("x.shape: {}".format(x.shape))
+        #x = self.pool(x)
+        #x = self.conv5(x)
+        #x = torch.relu(x)
+        #print("x.shape: {}".format(x.shape))
         x = x.view(x.size(0), -1)
         x = self.fc1(x)
         x = torch.relu(x)
         x = self.fc2(x)
         return x
+    
 def create_input_samples(df_input, RUL_target):
     # find number of unique values in 
     num_units = df_input["unit_number"].nunique()
@@ -71,7 +98,7 @@ def train_model(data_path="training_input.csv"):
 
     # Preprocess the data and create input samples
     input_samples, target_samples = create_input_samples(df_input, RUL_target)
-
+    input_samples_swapped = input_samples.transpose(0,2,1)
     # Create the CNN model
     model = CNN()
 
@@ -85,8 +112,8 @@ def train_model(data_path="training_input.csv"):
     # Training loop
     for epoch in range(1, NUM_EPOCHS + 1):
         # Shuffle the data
-        indices = np.random.permutation(len(input_samples))
-        input_samples_shuffled = input_samples[indices]
+        indices = np.random.permutation(len(input_samples_swapped))
+        input_samples_shuffled = input_samples_swapped[indices]
         target_samples_shuffled = target_samples[indices]
 
         # Calculate the total number of batches
