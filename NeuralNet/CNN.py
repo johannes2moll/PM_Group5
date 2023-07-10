@@ -58,7 +58,7 @@ def train_model(data_path="training_input.csv"):
     np.random.seed(42)
 
     # Hyperparameters
-    NUM_EPOCHS = 4000
+    NUM_EPOCHS = 400
     BATCH_SIZE = 32
     LEARNING_RATE = 0.01
 
@@ -80,6 +80,7 @@ def train_model(data_path="training_input.csv"):
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
     losses = []
+    predictions = []
     # Training loop
     # Training loop
     for epoch in range(1, NUM_EPOCHS + 1):
@@ -111,7 +112,7 @@ def train_model(data_path="training_input.csv"):
             output = model(batch_input)
 
             # Compute loss
-            loss = np.sqrt(criterion(output, batch_target))
+            loss = torch.sqrt(criterion(output, batch_target))
             total_loss += loss.item()
 
             # Backward pass
@@ -120,8 +121,11 @@ def train_model(data_path="training_input.csv"):
             # Update parameters
             optimizer.step()
 
+            # print progress
+            #if batch % 100 == 0:
+            #    print("Epoch: %d, Batch: %d / %d" % (epoch, batch, num_batches))
         # Print progress
-        if epoch % 100 == 0:
+        if epoch % 10 == 0:
             avg_loss = total_loss / num_batches
             losses.append(avg_loss)
             print("Epoch: %d, Loss: %.7f" % (epoch, avg_loss))
