@@ -10,19 +10,30 @@ class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
 
-        #TODO: Check filter size and stride etc from paper
+        ### PAPER MODEL ###
         # input samples have shape 30x13 (30: time cycles, 13: features)
         # output samples have shape 1x1 (1: RUL)
         
         # Convolutional layers
-        self.conv1 = nn.Conv1d(in_channels=13, out_channels=10, kernel_size=10, stride=1, padding=1)
-        self.conv2 = nn.Conv1d(in_channels=10, out_channels=1, kernel_size=10, stride=1, padding=1)
+        #self.conv1 = nn.Conv1d(in_channels=13, out_channels=10, kernel_size=10, stride=1, padding=1)
+        #self.conv2 = nn.Conv1d(in_channels=10, out_channels=10, kernel_size=10, stride=1, padding=1)
         #self.conv3 = nn.Conv1d(in_channels=10, out_channels=10, kernel_size=10, stride=1, padding=1)
         #self.conv4 = nn.Conv1d(in_channels=10, out_channels=10, kernel_size=10, stride=1, padding=1)
         #self.conv5 = nn.Conv1d(in_channels=10, out_channels=1, kernel_size=3, stride=1, padding=1)
 
         # Fully connected layers
-        self.fc1 = nn.Linear(16, 100)
+        #self.fc1 = nn.Linear(16, 100)
+        #self.fc2 = nn.Linear(100, 1)
+
+        ### MY MODEL ###
+        # input samples have shape 30x13 (30: time cycles, 13: features)
+        # output samples have shape 1x1 (1: RUL)
+        self.conv1 = nn.Conv1d(in_channels=13, out_channels=10, kernel_size=5, stride=1, padding=0)
+        self.pool = nn.MaxPool1d(kernel_size=2, stride=2, padding=1)
+        self.pool2 = nn.MaxPool1d(kernel_size=2, stride=2, padding=0)
+        self.conv2 = nn.Conv1d(in_channels=10, out_channels=20, kernel_size=5, stride=1, padding=0)
+        self.conv3 = nn.Conv1d(in_channels=20, out_channels=30, kernel_size=5, stride=1, padding=0)
+        self.fc1 = nn.Linear(30, 100)
         self.fc2 = nn.Linear(100, 1)
 
     def forward(self, x):
@@ -30,15 +41,17 @@ class CNN(nn.Module):
         x = self.conv1(x)
         x = torch.relu(x)
         #print("x.shape: {}".format(x.shape))
-        #x = self.pool(x)
+        x = self.pool(x)
+        #print("x.shape: {}".format(x.shape))
         x = self.conv2(x)
         x = torch.relu(x)
         #print("x.shape: {}".format(x.shape))
-        #x = self.pool(x)
-        #x = self.conv3(x)
-        #x = torch.relu(x)
+        x = self.pool(x)
         #print("x.shape: {}".format(x.shape))
-        #x = self.pool(x)
+        x = self.conv3(x)
+        x = torch.relu(x)
+        #print("x.shape: {}".format(x.shape))
+        x = self.pool2(x)
         #x = self.conv4(x)
         #x = torch.relu(x)
         #print("x.shape: {}".format(x.shape))
@@ -85,8 +98,8 @@ def train_model(data_path="training_input.csv"):
     np.random.seed(42)
 
     # Hyperparameters
-    NUM_EPOCHS = 400
-    BATCH_SIZE = 32
+    NUM_EPOCHS = 100
+    BATCH_SIZE = 128
     LEARNING_RATE = 0.01
 
     # Load the data
@@ -164,9 +177,9 @@ def train_model(data_path="training_input.csv"):
     plt.figure()
     plt.plot(losses)
     plt.title("Training Loss")
-    plt.xlabel('Epochs')
+    plt.xlabel('Epochs x10')
     plt.ylabel('Loss')
-    plt.savefig("../plots/loss_FCNN.png")
+    plt.savefig("../plots/loss_CNN.png")
 
 
 def main():
