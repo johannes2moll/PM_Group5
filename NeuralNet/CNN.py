@@ -111,7 +111,7 @@ def train_model(data_path="training_input.csv"):
             output = model(batch_input)
 
             # Compute loss
-            loss = criterion(output, batch_target)
+            loss = np.sqrt(criterion(output, batch_target))
             total_loss += loss.item()
 
             # Backward pass
