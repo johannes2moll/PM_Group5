@@ -98,7 +98,7 @@ def train_model(data_path="training_input.csv"):
     np.random.seed(42)
 
     # Hyperparameters
-    NUM_EPOCHS = 100
+    NUM_EPOCHS = 500
     BATCH_SIZE = 128
     LEARNING_RATE = 0.01
 
@@ -118,6 +118,8 @@ def train_model(data_path="training_input.csv"):
     # Define the loss function and optimizer
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.1)
 
     losses = []
     predictions = []
@@ -160,10 +162,14 @@ def train_model(data_path="training_input.csv"):
 
             # Update parameters
             optimizer.step()
-
+            
             # print progress
             #if batch % 100 == 0:
             #    print("Epoch: %d, Batch: %d / %d" % (epoch, batch, num_batches))
+
+        # Adjust the learning rate
+        scheduler.step()
+
         # Print progress
         if epoch % 10 == 0:
             avg_loss = total_loss / num_batches
