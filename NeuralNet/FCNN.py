@@ -63,7 +63,7 @@ def lossfunction(RUL_target, RUL_predicted):
 
     return loss
     
-def train_model(data_path="training_input.csv"):
+def train_model(data_path="Final_dataframe_train.csv"):
 
     # setting a seed for pytorch as well as one for numpy
     torch.manual_seed(2)
