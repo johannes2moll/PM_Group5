@@ -1,0 +1,20 @@
+### Info about network architecture and hyperparameters ###
+Note that these recontructions are part of the test and not the training process
+trainloss = 
+testloss = 
+
+
+        self.conv1 = nn.Conv1d(in_channels=10, out_channels=10, kernel_size=5, stride=1, padding=0)
+        self.pool = nn.MaxPool1d(kernel_size=2, stride=2, padding=1)
+        self.pool2 = nn.MaxPool1d(kernel_size=2, stride=2, padding=0)
+        self.conv2 = nn.Conv1d(in_channels=10, out_channels=20, kernel_size=5, stride=1, padding=0)
+        self.conv3 = nn.Conv1d(in_channels=20, out_channels=30, kernel_size=5, stride=1, padding=0)
+        self.fc1 = nn.Linear(30, 100)
+        self.fc2 = nn.Linear(100, 1)
+
+
+
+    # Hyperparameters
+    NUM_EPOCHS = 300    #50
+    BATCH_SIZE = 128    #512
+    LEARNING_RATE = 0.01

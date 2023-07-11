@@ -89,7 +89,6 @@ def create_input_samples(df_input, RUL_target):
 
             input_samples.append(input_sample)
             target_samples.append(target_sample)
-
     return np.array(input_samples), np.array(target_samples)
 
 def train_model(data_path="Final_dataframe_train.csv"):
@@ -98,7 +97,7 @@ def train_model(data_path="Final_dataframe_train.csv"):
     np.random.seed(42)
 
     # Hyperparameters
-    NUM_EPOCHS = 50    #50
+    NUM_EPOCHS = 300    #50
     BATCH_SIZE = 128    #512
     LEARNING_RATE = 0.01
 
@@ -112,6 +111,7 @@ def train_model(data_path="Final_dataframe_train.csv"):
     # Preprocess the data and create input samples
     input_samples, target_samples = create_input_samples(df_input, RUL_target)
     input_samples_swapped = input_samples.transpose(0,2,1)
+
     # Create the CNN model
     model = CNN()
 
@@ -169,11 +169,12 @@ def train_model(data_path="Final_dataframe_train.csv"):
 
         # Adjust the learning rate
         scheduler.step()
+        # Compute the average loss for the epoch
+        avg_loss = total_loss / num_batches
+        losses.append(avg_loss)
 
         # Print progress
         if epoch % 10 == 0:
-            avg_loss = total_loss / num_batches
-            losses.append(avg_loss)
             print("Epoch: %d, Loss: %.7f" % (epoch, avg_loss))
 
     torch.save(model.state_dict(), "CNN1.pt")
@@ -185,7 +186,7 @@ def train_model(data_path="Final_dataframe_train.csv"):
     plt.title("Training Loss")
     plt.xlabel('Epochs x10')
     plt.ylabel('Loss')
-    plt.savefig("../plots/loss_CNN.png")
+    plt.savefig("plots/loss_CNN.png")
 
 
 def main():
