@@ -28,7 +28,7 @@ class CNN(nn.Module):
         ### MY MODEL ###
         # input samples have shape 30x13 (30: time cycles, 13: features)
         # output samples have shape 1x1 (1: RUL)
-        self.conv1 = nn.Conv1d(in_channels=13, out_channels=10, kernel_size=5, stride=1, padding=0)
+        self.conv1 = nn.Conv1d(in_channels=10, out_channels=10, kernel_size=5, stride=1, padding=0)
         self.pool = nn.MaxPool1d(kernel_size=2, stride=2, padding=1)
         self.pool2 = nn.MaxPool1d(kernel_size=2, stride=2, padding=0)
         self.conv2 = nn.Conv1d(in_channels=10, out_channels=20, kernel_size=5, stride=1, padding=0)
@@ -92,14 +92,14 @@ def create_input_samples(df_input, RUL_target):
 
     return np.array(input_samples), np.array(target_samples)
 
-def train_model(data_path="training_input.csv"):
+def train_model(data_path="Final_dataframe_train.csv"):
     # Set random seed for reproducibility
     torch.manual_seed(42)
     np.random.seed(42)
 
     # Hyperparameters
-    NUM_EPOCHS = 500
-    BATCH_SIZE = 128
+    NUM_EPOCHS = 50    #50
+    BATCH_SIZE = 128    #512
     LEARNING_RATE = 0.01
 
     # Load the data
@@ -176,7 +176,7 @@ def train_model(data_path="training_input.csv"):
             losses.append(avg_loss)
             print("Epoch: %d, Loss: %.7f" % (epoch, avg_loss))
 
-    torch.save(model.state_dict(), "CNN.pt")
+    torch.save(model.state_dict(), "CNN1.pt")
 
     # plot the loss value over the epochs
     plt.tight_layout()
