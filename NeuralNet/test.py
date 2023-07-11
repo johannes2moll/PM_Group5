@@ -44,7 +44,6 @@ if model_type == "CNN":
         batch_input = torch.tensor(input_samples_swapped[start_idx:end_idx], dtype=torch.float32)
         batch_target = torch.tensor(test_label[start_idx:end_idx], dtype=torch.float32)
         
-        print(batch_input.shape)
         # Forward pass
         output = model(batch_input)
 
