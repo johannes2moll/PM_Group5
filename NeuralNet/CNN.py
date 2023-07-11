@@ -98,7 +98,7 @@ def train_model(data_path="Final_dataframe_train.csv"):
 
     # Hyperparameters
     NUM_EPOCHS = 300    #50
-    BATCH_SIZE = 128    #512
+    BATCH_SIZE = 512    #512
     LEARNING_RATE = 0.01
 
     # Load the data
@@ -182,11 +182,11 @@ def train_model(data_path="Final_dataframe_train.csv"):
     # plot the loss value over the epochs
     plt.tight_layout()
     plt.figure()
-    plt.plot(losses)
+    plt.semilogy(losses)
     plt.title("Training Loss")
     plt.xlabel('Epochs x10')
     plt.ylabel('Loss')
-    plt.savefig("plots/loss_CNN.png")
+    plt.savefig("plots/loss_CNN_batch512_epo300_logy.png")
 
 
 def main():

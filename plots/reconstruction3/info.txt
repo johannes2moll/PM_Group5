@@ -1,7 +1,8 @@
 ### Info about network architecture and hyperparameters ###
 Note that these recontructions are part of the test and not the training process
-trainloss = 19.5338306
-testloss = 62.824560938002186
+training plot is called loss_CNN_batch512_epo300.png
+trainloss = 30.1856765
+testloss = 59.27011885824083
 
 
         self.conv1 = nn.Conv1d(in_channels=10, out_channels=10, kernel_size=5, stride=1, padding=0)
@@ -16,5 +17,6 @@ testloss = 62.824560938002186
 
     # Hyperparameters
     NUM_EPOCHS = 300    #50
-    BATCH_SIZE = 128    #512
+    BATCH_SIZE = 512    #512
     LEARNING_RATE = 0.01
+mit scheduler alle 100 epoch

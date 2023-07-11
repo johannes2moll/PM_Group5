@@ -102,7 +102,7 @@ else:
 predictions = torch.cat(predictions, dim=0).detach().numpy()
 #print("len(predictions): {}".format(len(predictions)))
 
-for unit_num in range(1,101):
+for unit_num in range(1,100):
     ######################################
     # plot predictions for a specific unit
     #unit_num = 30
@@ -142,8 +142,10 @@ for unit_num in range(1,101):
         plt.plot(predictions[start_idx:end_idx], label="Predicted RUL")
 
     plt.title("Unit {}".format(unit_num))
+    plt.xlabel("Time Cycles")
+    plt.ylabel("RUL")
     plt.legend()
-    plt.savefig("plots/reconstruction2/CNN_Unit_{}.png".format(unit_num))
+    plt.savefig("plots/reconstruction3/CNN_Unit_{}.png".format(unit_num))
     plt.close()
 avg_loss = total_loss / num_batches
 print("Average loss: {}".format(avg_loss))
