@@ -13,7 +13,7 @@ class CNN(nn.Module):
         ### MY MODEL ###
         # input samples have shape 30x13 (30: time cycles, 13: features)
         # output samples have shape 1x1 (1: RUL)
-        self.conv1 = nn.Conv1d(in_channels=7, out_channels=10, kernel_size=5, stride=1, padding=2)
+        self.conv1 = nn.Conv1d(in_channels=10, out_channels=10, kernel_size=5, stride=1, padding=2)
         #self.pool = nn.MaxPool1d(kernel_size=2, stride=2, padding=1)
         #self.pool2 = nn.MaxPool1d(kernel_size=2, stride=2, padding=0)
         self.dropout = nn.Dropout(p=0.5)
@@ -57,7 +57,9 @@ def create_input_samples(df_input, RUL_target):
         num_time_cycles = 30
         unit_data = df_input[df_input["unit_number"] == unit_id].iloc[:, 2:]
         unit_data = unit_data.filter(["unit_number","time_cycle","sensor_2","sensor_3",
-                                      "sensor_4","sensor_7","sensor_8","sensor_9","Degradation Classification"], axis=1)
+                                      "sensor_4","sensor_7","sensor_8","sensor_9",
+                                      "sensor_13","sensor_14","sensor_20",
+                                      "Degradation Classification"], axis=1)
         unit_target = RUL_target[RUL_target["unit_number"] == unit_id]
 
         unit_target = unit_target.filter(["RUL"], axis=1).to_numpy()
@@ -91,7 +93,7 @@ def train_model(data_path="Final_dataframe_train.csv"):
     np.random.seed(42)
 
     # Hyperparameters
-    NUM_EPOCHS = 30    #50
+    NUM_EPOCHS = 100    #50
     BATCH_SIZE = 128    #512
     LEARNING_RATE = 0.01
 
@@ -182,6 +184,7 @@ def train_model(data_path="Final_dataframe_train.csv"):
         test_input = data.drop(["RUL"], axis=1)
         test_input = test_input.filter(["unit_number","time_cycle","sensor_2","sensor_3",
                                         "sensor_4","sensor_7","sensor_8","sensor_9",
+                                        "sensor_13","sensor_14","sensor_20",
                                         "Degradation Classification"], axis=1)
         test_label = data.filter(["unit_number","RUL"], axis=1)
         test_input_sampled, test_label_sampled = create_input_samples(test_input, test_label)
@@ -228,7 +231,7 @@ def train_model(data_path="Final_dataframe_train.csv"):
     plt.legend()
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
-    plt.savefig("plots/test.png")
+    plt.savefig("plots/Lenatest_lessunits.png")
 
 
 def main():
