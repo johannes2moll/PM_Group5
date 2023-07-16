@@ -13,29 +13,35 @@ class CNN(nn.Module):
         ### MY MODEL ###
         # input samples have shape 30x13 (30: time cycles, 13: features)
         # output samples have shape 1x1 (1: RUL)
-        self.conv1 = nn.Conv1d(in_channels=10, out_channels=10, kernel_size=5, stride=1, padding=0)
-        self.pool = nn.MaxPool1d(kernel_size=2, stride=2, padding=1)
-        self.pool2 = nn.MaxPool1d(kernel_size=2, stride=2, padding=0)
-        self.conv2 = nn.Conv1d(in_channels=10, out_channels=20, kernel_size=5, stride=1, padding=0)
-        self.conv3 = nn.Conv1d(in_channels=20, out_channels=30, kernel_size=5, stride=1, padding=0)
-        self.fc1 = nn.Linear(30, 100)
-        self.fc2 = nn.Linear(100, 1)
+        self.conv1 = nn.Conv1d(in_channels=10, out_channels=10, kernel_size=5, stride=1, padding=2)
+        #self.pool = nn.MaxPool1d(kernel_size=2, stride=2, padding=1)
+        #self.pool2 = nn.MaxPool1d(kernel_size=2, stride=2, padding=0)
+        self.conv2 = nn.Conv1d(in_channels=10, out_channels=20, kernel_size=5, stride=1, padding=2)
+        self.conv3 = nn.Conv1d(in_channels=20, out_channels=30, kernel_size=5, stride=1, padding=2)
+        self.fc1 = nn.Linear(30*30, 100)
+        self.fc2 = nn.Linear(100, 100)
+        self.fc3 = nn.Linear(100, 1)
 
     def forward(self, x):
         x = self.conv1(x)
         x = torch.relu(x)
-        x = self.pool(x)
+        #print("x.shape: {}".format(x.shape))
+        #x = self.pool(x)
         x = self.conv2(x)
         x = torch.relu(x)
-        x = self.pool(x)
+        #x = self.pool(x)
+        #print("x.shape: {}".format(x.shape))
         x = self.conv3(x)
         x = torch.relu(x)
-        x = self.pool2(x)
+        #print("x.shape: {}".format(x.shape))
+        #x = self.pool2(x)
 
         x = x.view(x.size(0), -1)
         x = self.fc1(x)
         x = torch.relu(x)
         x = self.fc2(x)
+        x = torch.relu(x)
+        x = self.fc3(x)
         return x
     
 def create_input_samples(df_input, RUL_target):
@@ -70,8 +76,8 @@ def train_model(data_path="Final_dataframe_train.csv"):
     np.random.seed(42)
 
     # Hyperparameters
-    NUM_EPOCHS = 30    #50
-    BATCH_SIZE = 512    #512
+    NUM_EPOCHS = 100    #50
+    BATCH_SIZE = 128    #512
     LEARNING_RATE = 0.01
 
     # Load the data
@@ -156,7 +162,7 @@ def train_model(data_path="Final_dataframe_train.csv"):
         test_input = data.drop(["RUL"], axis=1)
         test_label = data.filter(["unit_number","RUL"], axis=1)
         test_input_sampled, test_label_sampled = create_input_samples(test_input, test_label)
-        input_samples_swapped = test_input_sampled.transpose(0,2,1)
+        test_input_samples_swapped = test_input_sampled.transpose(0,2,1)
 
         # Compute the loss
         criterion = nn.MSELoss()
@@ -169,15 +175,15 @@ def train_model(data_path="Final_dataframe_train.csv"):
             end_idx = (batch + 1) * BATCH_SIZE
 
             # Get the batch input and target tensors
-            batch_input = torch.tensor(input_samples_swapped[start_idx:end_idx], dtype=torch.float32)
+            batch_input = torch.tensor(test_input_samples_swapped[start_idx:end_idx], dtype=torch.float32)
             batch_target = torch.tensor(test_label_sampled[start_idx:end_idx], dtype=torch.float32)
             
             # Forward pass
             output = model(batch_input)
             predictions.append(output)
-            loss = criterion(output, batch_target)
-            loss = torch.sqrt(loss)
-            total_testloss += loss.item()
+            test_loss = criterion(output, batch_target)
+            test_loss = torch.sqrt(test_loss)
+            total_testloss += test_loss.item()
 
         # Compute the average test loss
         avg_testloss = total_testloss / num_batches
@@ -194,7 +200,8 @@ def train_model(data_path="Final_dataframe_train.csv"):
     plt.figure()
     plt.semilogy(epochs, losses, label="Training Loss")
     plt.semilogy(epochs, test_losses, label="Test Loss")
-    plt.title("Training Loss")
+    plt.title("Loss")
+    plt.legend()
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.savefig("plots/loss_CNNtest.png")
