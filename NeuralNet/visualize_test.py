@@ -4,7 +4,7 @@ import torch.optim as optim
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from CNN import create_input_samples, CNN
+from CNN_with_test import CNN, create_input_samples
 from FCNN import FCNN
 
 
@@ -30,7 +30,7 @@ else:
     model = CNN()  # Instantiate your model
 
 # specify model file name
-model.load_state_dict(torch.load("CNN1.pt"))
+model.load_state_dict(torch.load("CNN3.pt"))
 model.eval()
 
 # preprocess the data
@@ -145,7 +145,7 @@ for unit_num in range(1,100):
     plt.xlabel("Time Cycles")
     plt.ylabel("RUL")
     plt.legend()
-    plt.savefig("plots/reconstruction3/CNN_Unit_{}.png".format(unit_num))
+    plt.savefig("plots/reconstruction4/CNN_Unit_{}.png".format(unit_num))
     plt.close()
 avg_loss = total_loss / num_batches
 print("Average loss: {}".format(avg_loss))

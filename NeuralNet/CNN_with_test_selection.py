@@ -13,15 +13,15 @@ class CNN(nn.Module):
         ### MY MODEL ###
         # input samples have shape 30x13 (30: time cycles, 13: features)
         # output samples have shape 1x1 (1: RUL)
-        self.conv1 = nn.Conv1d(in_channels=10, out_channels=10, kernel_size=5, stride=1, padding=2)
+        self.conv1 = nn.Conv1d(in_channels=7, out_channels=10, kernel_size=5, stride=1, padding=2)
         #self.pool = nn.MaxPool1d(kernel_size=2, stride=2, padding=1)
         #self.pool2 = nn.MaxPool1d(kernel_size=2, stride=2, padding=0)
         self.dropout = nn.Dropout(p=0.5)
-        self.conv2 = nn.Conv1d(in_channels=10, out_channels=10, kernel_size=5, stride=1, padding=2)
-        self.conv3 = nn.Conv1d(in_channels=10, out_channels=10, kernel_size=5, stride=1, padding=2)
-        self.fc1 = nn.Linear(10*30, 20)    # TODO
-        self.fc2 = nn.Linear(20, 20)
-        self.fc3 = nn.Linear(20, 1)
+        self.conv2 = nn.Conv1d(in_channels=10, out_channels=20, kernel_size=5, stride=1, padding=2)
+        self.conv3 = nn.Conv1d(in_channels=20, out_channels=30, kernel_size=5, stride=1, padding=2)
+        self.fc1 = nn.Linear(30*30, 100)    # TODO
+        self.fc2 = nn.Linear(100, 100)
+        self.fc3 = nn.Linear(100, 1)
 
     def forward(self, x):
         x = self.conv1(x)
@@ -56,6 +56,8 @@ def create_input_samples(df_input, RUL_target):
         # find number of time cycles for current unit
         num_time_cycles = 30
         unit_data = df_input[df_input["unit_number"] == unit_id].iloc[:, 2:]
+        unit_data = unit_data.filter(["unit_number","time_cycle","sensor_2","sensor_3",
+                                      "sensor_4","sensor_7","sensor_8","sensor_9","Degradation Classification"], axis=1)
         unit_target = RUL_target[RUL_target["unit_number"] == unit_id]
 
         unit_target = unit_target.filter(["RUL"], axis=1).to_numpy()
@@ -89,7 +91,7 @@ def train_model(data_path="Final_dataframe_train.csv"):
     np.random.seed(42)
 
     # Hyperparameters
-    NUM_EPOCHS = 100    #50
+    NUM_EPOCHS = 30    #50
     BATCH_SIZE = 128    #512
     LEARNING_RATE = 0.01
 
@@ -178,6 +180,9 @@ def train_model(data_path="Final_dataframe_train.csv"):
         # Load the test data
         data = pd.read_csv('Final_dataframe_test_lessunits.csv')
         test_input = data.drop(["RUL"], axis=1)
+        test_input = test_input.filter(["unit_number","time_cycle","sensor_2","sensor_3",
+                                        "sensor_4","sensor_7","sensor_8","sensor_9",
+                                        "Degradation Classification"], axis=1)
         test_label = data.filter(["unit_number","RUL"], axis=1)
         test_input_sampled, test_label_sampled = create_input_samples(test_input, test_label)
         test_input_samples_swapped = test_input_sampled.transpose(0,2,1)
@@ -223,7 +228,7 @@ def train_model(data_path="Final_dataframe_train.csv"):
     plt.legend()
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
-    plt.savefig("plots/loss_CNNtest_ridge01_128_20.png")
+    plt.savefig("plots/test.png")
 
 
 def main():
