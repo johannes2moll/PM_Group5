@@ -1,6 +1,12 @@
 # PM_Group5
 Group work for AI in Production Engineering
 
+# Set up environment
+```bash
+conda env create -f environment.yml
+conda activate aiinpe
+```
+
 # Installation guide
 ```bash
 pip install git

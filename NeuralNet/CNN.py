@@ -4,7 +4,7 @@ import torch.optim as optim
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import time
 # Define the CNN model
 class CNN(nn.Module):
     def __init__(self):
@@ -97,8 +97,8 @@ def train_model(data_path="Final_dataframe_train.csv"):
     np.random.seed(42)
 
     # Hyperparameters
-    NUM_EPOCHS = 300    #50
-    BATCH_SIZE = 512    #512
+    NUM_EPOCHS = 100    #50
+    BATCH_SIZE = 128    #512
     LEARNING_RATE = 0.01
 
     # Load the data
@@ -125,6 +125,7 @@ def train_model(data_path="Final_dataframe_train.csv"):
     predictions = []
     # Training loop
     # Training loop
+    start_time = time.time()
     for epoch in range(1, NUM_EPOCHS + 1):
         # Shuffle the data
         indices = np.random.permutation(len(input_samples_swapped))
@@ -178,7 +179,8 @@ def train_model(data_path="Final_dataframe_train.csv"):
             print("Epoch: %d, Loss: %.7f" % (epoch, avg_loss))
 
     torch.save(model.state_dict(), "CNN1.pt")
-
+    end_time = time.time()
+    print("Training time: {}".format(end_time - start_time))
     # plot the loss value over the epochs
     plt.tight_layout()
     plt.figure()
