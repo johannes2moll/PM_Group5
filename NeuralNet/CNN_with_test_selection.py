@@ -25,15 +25,15 @@ class CNN(nn.Module):
 
     def forward(self, x):
         x = self.conv1(x)
-        x = torch.relu(x)
+        x = torch.tanh(x)
         #print("x.shape: {}".format(x.shape))
         #x = self.pool(x)
         x = self.conv2(x)
-        x = torch.relu(x)
+        x = torch.tanh(x)
         #x = self.pool(x)
         #print("x.shape: {}".format(x.shape))
         x = self.conv3(x)
-        x = torch.relu(x)
+        x = torch.tanh(x)
         #print("x.shape: {}".format(x.shape))
         #x = self.pool2(x)
 
